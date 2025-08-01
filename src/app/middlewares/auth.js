@@ -1,13 +1,11 @@
-const jwt = require("jsonwebtoken")
-const db = require("../config/database")
-
 import jwt from "jsonwebtoken"
-import db from "../config/db.js"
+import db from "../config/database.js"
+
 
 // JWT Token verify করার middleware
 const authenticateToken = async (req, res, next) => {
     const authHeader = req.headers["authorization"]
-    const token = authHeader && authHeader.split(" ")[1]
+    const token = authHeader;
 
     if (!token) {
         return res.status(401).json({ message: "Access token required" })
@@ -46,8 +44,10 @@ const requireCustomer = (req, res, next) => {
     next()
 }
 
-module.exports = {
+const auth = {
     authenticateToken,
     requireAdmin,
     requireCustomer,
 }
+
+export default auth;

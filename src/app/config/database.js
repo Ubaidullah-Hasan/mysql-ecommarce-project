@@ -1,4 +1,3 @@
-// const mysql = require("mysql2")
 import mysql from "mysql2"
 import config from "./index.js"
 
