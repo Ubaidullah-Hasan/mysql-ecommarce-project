@@ -5,6 +5,34 @@ import auth from "../middlewares/auth.js"
 
 const router = express.Router()
 
+// Middleware to ensure products table exists
+const ensureProductsTable = async (req, res, next) => {
+    try {
+        await db.execute(`
+            CREATE TABLE IF NOT EXISTS products (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
+                description TEXT,
+                price DECIMAL(10,2) NOT NULL,
+                stock_quantity INT NOT NULL DEFAULT 0,
+                category_id INT NOT NULL,
+                image_url VARCHAR(255),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                FOREIGN KEY (category_id) REFERENCES categories(id)
+            )
+        `);
+        next();
+    } catch (error) {
+        console.error("Products table creation error:", error);
+        res.status(500).json({
+            message: "Database initialization failed",
+            error: error.message
+        });
+    }
+};
+
+
 // Get all products with advanced filtering - সব প্রোডাক্ট পাওয়া (ফিল্টারিং সহ)
 router.get("/", async (req, res) => {
     try {
@@ -162,6 +190,7 @@ router.post(
     "/",
     auth.authenticateToken,
     auth.requireAdmin,
+    ensureProductsTable,
     [
         body("name").notEmpty().withMessage("Product name is required"),
         body("price").isFloat({ min: 0 }).withMessage("Price must be a positive number"),
