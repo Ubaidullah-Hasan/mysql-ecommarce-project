@@ -5,6 +5,8 @@ import config from './app/config/index.js';
 import authRoutes from './app/routes/auth.js';
 import productRoutes from './app/routes/products.js';
 import categoryRoutes from './app/routes/categories.js';
+import orderRoutes from './app/routes/orders.js';
+import cartRoutes from './app/routes/cart.js';
 
 dotenv.config();
 
@@ -18,12 +20,12 @@ app.use(express.json());
 
 // Routes - রুট সেটআপ
 app.use("/api/auth", authRoutes);
-app.use("/api/products", productRoutes)
-app.use("/api/categories", categoryRoutes)
-// app.use("/api/cart", cartRoutes);
-// app.use("/api/orders", orderRoutes)
+app.use("/api/products", productRoutes);
+app.use("/api/categories", categoryRoutes);
+app.use("/api/cart", cartRoutes);
+app.use("/api/orders", orderRoutes);
 // app.use("/api/reports", reportRoutes)
-// app.use("/api/relationships", relationshipRoutes)
+// app.use("/api/relationships", relationshipRoutes);
 
 
 
