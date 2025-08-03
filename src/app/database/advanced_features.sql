@@ -182,7 +182,25 @@ BEGIN
 END;
 
 
+-- Get Top Selling Products Procedure - টপ সেলিং প্রোডাক্ট প্রসিডিউর
+DROP PROCEDURE IF EXISTS GetTopSellingProducts;
 
+CREATE PROCEDURE GetTopSellingProducts(IN p_limit INT)
+BEGIN
+    SELECT 
+        p.id,
+        p.name,
+        p.price,
+        SUM(oi.quantity) as total_sold,
+        SUM(oi.quantity * oi.unit_price) as total_revenue
+    FROM products p
+    JOIN order_items oi ON p.id = oi.product_id
+    JOIN orders o ON oi.order_id = o.id
+    WHERE o.status != 'cancelled'
+    GROUP BY p.id, p.name, p.price
+    ORDER BY total_sold DESC
+    LIMIT p_limit;
+END;
 
 
 
@@ -193,25 +211,6 @@ END;
 
 
 
--- Get Top Selling Products Procedure - টপ সেলিং প্রোডাক্ট প্রসিডিউর
-DELIMITER //
-CREATE PROCEDURE GetTopSellingProducts(IN p_limit INT)
-BEGIN
-    SELECT 
-        p.id,
-        p.name,
-        p.price,
-        SUM(oi.quantity) as total_sold,
-        SUM(oi.quantity * oi.price) as total_revenue
-    FROM products p
-    JOIN order_items oi ON p.id = oi.product_id
-    JOIN orders o ON oi.order_id = o.id
-    WHERE o.status != 'cancelled'
-    GROUP BY p.id, p.name, p.price
-    ORDER BY total_sold DESC
-    LIMIT p_limit;
-END //
-DELIMITER ;
 
 -- Add more complex stored procedures
 

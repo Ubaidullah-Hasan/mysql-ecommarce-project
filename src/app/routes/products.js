@@ -11,7 +11,6 @@ router.get("/", async (req, res) => {
     try {
         const { category, minPrice, maxPrice, search, sortBy = "name", sortOrder = "ASC", page = 1, limit = 10 } = req.query;
 
-
         const parsedLimit = Number.isInteger(Number(limit)) ? Number(limit) : 10;
         const parsedPage = Number.isInteger(Number(page)) ? Number(page) : 1;
         const offset = (parsedPage - 1) * parsedLimit;
@@ -49,17 +48,17 @@ router.get("/:id", async (req, res) => {
         // Get product details with category - প্রোডাক্ট ডিটেইলস পাওয়া
         const [products] = await db.execute(
             `
-      SELECT 
-        p.*, 
-        c.name as category_name,
-        COALESCE(AVG(r.rating), 0) as average_rating,
-        COUNT(r.id) as review_count
-      FROM products p
-      LEFT JOIN categories c ON p.category_id = c.id
-      LEFT JOIN reviews r ON p.id = r.product_id
-      WHERE p.id = ?
-      GROUP BY p.id
-    `,
+                SELECT 
+                    p.*, 
+                    c.name as category_name,
+                    COALESCE(AVG(r.rating), 0) as average_rating,
+                    COUNT(r.id) as review_count
+                FROM products p
+                LEFT JOIN categories c ON p.category_id = c.id
+                LEFT JOIN reviews r ON p.id = r.product_id
+                WHERE p.id = ?
+                GROUP BY p.id
+            `,
             [productId],
         )
 
@@ -70,14 +69,14 @@ router.get("/:id", async (req, res) => {
         // Get product reviews - প্রোডাক্ট রিভিউ পাওয়া
         const [reviews] = await db.execute(
             `
-      SELECT 
-        r.id, r.rating, r.comment, r.created_at,
-        u.name as user_name
-      FROM reviews r
-      JOIN users u ON r.user_id = u.id
-      WHERE r.product_id = ?
-      ORDER BY r.created_at DESC
-    `,
+                SELECT 
+                    r.id, r.rating, r.comment, r.created_at,
+                    u.name as user_name
+                FROM reviews r
+                JOIN users u ON r.user_id = u.id
+                WHERE r.product_id = ?
+                ORDER BY r.created_at DESC
+            `,
             [productId],
         )
 
