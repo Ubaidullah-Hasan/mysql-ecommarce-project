@@ -43,21 +43,11 @@ router.get("/", async (req, res) => {
 // Get single product with reviews - একটি প্রোডাক্ট পাওয়া (রিভিউ সহ)
 router.get("/:id", async (req, res) => {
     try {
-        const productId = req.params.id
+        const productId = req.params.id;
 
-        // Get product details with category - প্রোডাক্ট ডিটেইলস পাওয়া
         const [products] = await db.execute(
             `
-                SELECT 
-                    p.*, 
-                    c.name as category_name,
-                    COALESCE(AVG(r.rating), 0) as average_rating,
-                    COUNT(r.id) as review_count
-                FROM products p
-                LEFT JOIN categories c ON p.category_id = c.id
-                LEFT JOIN reviews r ON p.id = r.product_id
-                WHERE p.id = ?
-                GROUP BY p.id
+                SELECT * FROM product_summary WHERE id = ?
             `,
             [productId],
         )
