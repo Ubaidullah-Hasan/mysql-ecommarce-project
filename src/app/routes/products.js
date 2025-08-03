@@ -5,133 +5,39 @@ import auth from "../middlewares/auth.js"
 
 const router = express.Router()
 
-// Middleware to ensure products table exists
-const ensureProductsTable = async (req, res, next) => {
-    try {
-        await db.execute(`
-            CREATE TABLE IF NOT EXISTS products (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                name VARCHAR(255) NOT NULL,
-                description TEXT,
-                price DECIMAL(10,2) NOT NULL,
-                stock_quantity INT NOT NULL DEFAULT 0,
-                category_id INT NOT NULL,
-                image_url VARCHAR(255),
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                FOREIGN KEY (category_id) REFERENCES categories(id)
-            )
-        `);
-        next();
-    } catch (error) {
-        console.error("Products table creation error:", error);
-        res.status(500).json({
-            message: "Database initialization failed",
-            error: error.message
-        });
-    }
-};
-
 
 // Get all products with advanced filtering - সব প্রোডাক্ট পাওয়া (ফিল্টারিং সহ)
 router.get("/", async (req, res) => {
     try {
-        const { category, minPrice, maxPrice, search, sortBy = "name", sortOrder = "ASC", page = 1, limit = 10 } = req.query
+        const { category, minPrice, maxPrice, search, sortBy = "name", sortOrder = "ASC", page = 1, limit = 10 } = req.query;
 
-        let query = `
-      SELECT 
-        p.id, p.name, p.description, p.price, p.stock_quantity, p.image_url,
-        c.name as category_name,
-        COALESCE(AVG(r.rating), 0) as average_rating,
-        COUNT(r.id) as review_count
-      FROM products p
-      LEFT JOIN categories c ON p.category_id = c.id
-      LEFT JOIN reviews r ON p.id = r.product_id
-      WHERE 1=1
-    `
 
-        const params = []
+        const parsedLimit = Number.isInteger(Number(limit)) ? Number(limit) : 10;
+        const parsedPage = Number.isInteger(Number(page)) ? Number(page) : 1;
+        const offset = (parsedPage - 1) * parsedLimit;
 
-        // Search functionality - সার্চ ফাংশনালিটি
-        if (search) {
-            query += " AND (p.name LIKE ? OR p.description LIKE ?)"
-            params.push(`%${search}%`, `%${search}%`)
-        }
+        const query = `
+            SELECT 
+                p.id, p.name, p.description, p.price, p.stock_quantity, p.image_url,
+                c.name as category_name,
+                COALESCE(AVG(r.rating), 0) as average_rating,
+                COUNT(r.id) as review_count
+            FROM products p
+            LEFT JOIN categories c ON p.category_id = c.id
+            LEFT JOIN reviews r ON p.id = r.product_id
+            GROUP BY p.id, p.name, p.description, p.price, p.stock_quantity, p.image_url, c.name
+            ORDER BY p.name ASC
+            LIMIT ${parsedLimit} OFFSET ${offset}
+        `;
 
-        // Category filter - ক্যাটেগরি ফিল্টার
-        if (category) {
-            query += " AND c.name = ?"
-            params.push(category)
-        }
-
-        // Price range filter - দাম রেঞ্জ ফিল্টার
-        if (minPrice) {
-            query += " AND p.price >= ?"
-            params.push(minPrice)
-        }
-        if (maxPrice) {
-            query += " AND p.price <= ?"
-            params.push(maxPrice)
-        }
-
-        query += " GROUP BY p.id, p.name, p.description, p.price, p.stock_quantity, p.image_url, c.name"
-
-        // Sorting - সর্টিং
-        const validSortFields = ["name", "price", "created_at", "average_rating"]
-        const sortField = validSortFields.includes(sortBy) ? sortBy : "name"
-        const order = sortOrder.toUpperCase() === "DESC" ? "DESC" : "ASC"
-
-        if (sortBy === "average_rating") {
-            query += ` ORDER BY average_rating ${order}`
-        } else {
-            query += ` ORDER BY p.${sortField} ${order}`
-        }
-
-        // Pagination - পেজিনেশন
-        const offset = (page - 1) * limit
-        query += " LIMIT ? OFFSET ?"
-        params.push(Number.parseInt(limit), Number.parseInt(offset))
-
-        const [products] = await db.execute(query, params)
-
-        // Get total count for pagination - পেজিনেশনের জন্য টোটাল কাউন্ট
-        let countQuery =
-            "SELECT COUNT(DISTINCT p.id) as total FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE 1=1"
-        const countParams = []
-
-        if (search) {
-            countQuery += " AND (p.name LIKE ? OR p.description LIKE ?)"
-            countParams.push(`%${search}%`, `%${search}%`)
-        }
-        if (category) {
-            countQuery += " AND c.name = ?"
-            countParams.push(category)
-        }
-        if (minPrice) {
-            countQuery += " AND p.price >= ?"
-            countParams.push(minPrice)
-        }
-        if (maxPrice) {
-            countQuery += " AND p.price <= ?"
-            countParams.push(maxPrice)
-        }
-
-        const [countResult] = await db.execute(countQuery, countParams)
-        const totalProducts = countResult[0].total
-
+        const [products] = await db.execute(query); 
         res.json({
-            products,
-            pagination: {
-                currentPage: Number.parseInt(page),
-                totalPages: Math.ceil(totalProducts / limit),
-                totalProducts,
-                hasNext: page * limit < totalProducts,
-                hasPrev: page > 1,
-            },
-        })
+            products
+    });
+
     } catch (error) {
-        console.error("Get products error:", error)
-        res.status(500).json({ message: "Server error while fetching products" })
+        console.error("Get products error:", error);
+        res.status(500).json({ message: "Server error while fetching products" });
     }
 })
 
@@ -190,7 +96,6 @@ router.post(
     "/",
     auth.authenticateToken,
     auth.requireAdmin,
-    ensureProductsTable,
     [
         body("name").notEmpty().withMessage("Product name is required"),
         body("price").isFloat({ min: 0 }).withMessage("Price must be a positive number"),

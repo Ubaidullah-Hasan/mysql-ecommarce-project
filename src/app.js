@@ -40,7 +40,24 @@ app.use((req, res) => {
   res.status(404).send('Not Found');
 });
 
-// Start the server
 
-const PORT = config.port;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+const startServer = async () => {
+  try {
+    await import('./app/config/database.js');
+    const PORT = config.port;
+    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+  } catch (error) {
+    console.error("সার্ভার স্টার্ট করতে ব্যর্থ:", error);
+    process.exit(1);
+  }
+};
+
+startServer();
+
+
+
+
+// // Start the server
+// const PORT = config.port;
+// app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

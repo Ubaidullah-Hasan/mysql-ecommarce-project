@@ -25,20 +25,6 @@ router.post(
 
             const { name, email, password, phone, address, role = "customer" } = req.body;
 
-            // First check if table exists, create if not
-            await db.execute(`
-                CREATE TABLE IF NOT EXISTS users (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
-                    name VARCHAR(255) NOT NULL,
-                    email VARCHAR(255) NOT NULL UNIQUE,
-                    password VARCHAR(255) NOT NULL,
-                    role ENUM('customer', 'admin') DEFAULT 'customer',
-                    phone VARCHAR(20),
-                    address TEXT,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-                )
-            `);
 
             // Check if user already exists - ইউজার আগে থেকে আছে কিনা চেক করা
             const [existingUsers] = await db.execute("SELECT id FROM users WHERE email = ?", [email])

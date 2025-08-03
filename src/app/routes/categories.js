@@ -5,25 +5,6 @@ import auth from "../middlewares/auth.js"
 
 const router = express.Router()
 
-// Middleware to ensure categories table exists
-const ensureCategoriesTable = async (req, res, next) => {
-    try {
-        await db.execute(`
-            CREATE TABLE IF NOT EXISTS categories (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                name VARCHAR(255) NOT NULL UNIQUE,
-                description TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-            )
-        `);
-        next();
-    } catch (error) {
-        console.error("Categories table creation error:", error);
-        res.status(500).json({ message: "Database initialization failed" });
-    }
-};
-
 // Get all categories - সব ক্যাটেগরি পাওয়া
 router.get("/", async (req, res) => {
     try {
@@ -52,7 +33,6 @@ router.post(
     "/",
     auth.authenticateToken,
     auth.requireAdmin,
-    ensureCategoriesTable,
     [body("name").notEmpty().withMessage("Category name is required"), body("description").optional()],
     async (req, res) => {
         try {
