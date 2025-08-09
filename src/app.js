@@ -14,16 +14,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// app.use(router);
-// console.log('Router initialized', router);
 
 // Routes - রুট সেটআপ
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/cart", cartRoutes);
-// app.use("/api/reports", reportRoutes)
-// app.use("/api/relationships", relationshipRoutes);
 
 
 
@@ -54,10 +50,3 @@ const startServer = async () => {
 };
 
 startServer();
-
-
-
-
-// // Start the server
-// const PORT = config.port;
-// app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

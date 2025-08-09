@@ -209,24 +209,7 @@ router.delete("/remove/:cartId", auth.authenticateToken, auth.requireCustomer, a
     }
 })
 
-// Clear entire cart - পুরো কার্ট পরিষ্কার করা
-// router.delete("/clear", authenticateToken, requireCustomer, async (req, res) => {
-//     try {
-//         const userId = req.user.id
-
-//         // Clear all cart items for user - ইউজারের সব কার্ট আইটেম পরিষ্কার করা
-//         const [result] = await db.execute("DELETE FROM cart WHERE user_id = ?", [userId])
-
-//         res.json({
-//             message: "Cart cleared successfully",
-//             removedItems: result.affectedRows,
-//         })
-//     } catch (error) {
-//         console.error("Clear cart error:", error)
-//         res.status(500).json({ message: "Server error while clearing cart" })
-//     }
-// })
-
+// 
 const cartRoutes = router
 
 export default cartRoutes

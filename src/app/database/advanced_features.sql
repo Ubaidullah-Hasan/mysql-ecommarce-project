@@ -36,3 +36,14 @@ BEGIN
     ORDER BY total_sold DESC
     LIMIT p_limit;
 END;
+
+
+DROP TRIGGER IF EXISTS after_cart_delete;
+
+CREATE TRIGGER after_cart_delete
+AFTER DELETE ON cart
+FOR EACH ROW
+BEGIN
+    INSERT INTO watchlist (cart_id, user_id, product_id, quantity)
+    VALUES (OLD.id, OLD.user_id, OLD.product_id, OLD.quantity);
+END;

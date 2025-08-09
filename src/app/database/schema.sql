@@ -53,6 +53,15 @@ CREATE TABLE IF NOT EXISTS cart (
     UNIQUE KEY unique_user_product (user_id, product_id)
 );
 
+CREATE TABLE IF NOT EXISTS watchlist (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    cart_id INT,
+    user_id INT,
+    product_id INT,
+    quantity INT,
+    removed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Orders table - অর্ডার টেবিল (ONE-TO-MANY with users)
 CREATE TABLE IF NOT EXISTS orders (
     id INT PRIMARY KEY AUTO_INCREMENT,
